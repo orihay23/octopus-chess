@@ -34,6 +34,49 @@
             </div>
         </div>
 
+        <!-- Difficulty Selection Screen -->
+        <div id="difficulty-selection" class="screen hidden">
+            <div class="container">
+                <h1>🎯 Choose Difficulty</h1>
+                <p class="description">
+                    Select AI difficulty for both your teammate and opponent
+                </p>
+                <div class="difficulty-grid">
+                    <div class="difficulty-card" onclick="selectDifficulty(0)">
+                        <h3>Level 0</h3>
+                        <p>🎲 Random</p>
+                        <span class="difficulty-desc">Completely random moves</span>
+                    </div>
+                    <div class="difficulty-card" onclick="selectDifficulty(1)">
+                        <h3>Level 1</h3>
+                        <p>🎯 Beginner</p>
+                        <span class="difficulty-desc">Prefers captures</span>
+                    </div>
+                    <div class="difficulty-card" onclick="selectDifficulty(2)">
+                        <h3>Level 2</h3>
+                        <p>🛡️ Novice</p>
+                        <span class="difficulty-desc">Avoids hanging pieces</span>
+                    </div>
+                    <div class="difficulty-card" onclick="selectDifficulty(3)">
+                        <h3>Level 3</h3>
+                        <p>⚔️ Intermediate</p>
+                        <span class="difficulty-desc">Values material</span>
+                    </div>
+                    <div class="difficulty-card" onclick="selectDifficulty(4)">
+                        <h3>Level 4</h3>
+                        <p>🧩 Advanced</p>
+                        <span class="difficulty-desc">Tactical play</span>
+                    </div>
+                    <div class="difficulty-card" onclick="selectDifficulty(5)">
+                        <h3>Level 5</h3>
+                        <p>👑 Expert</p>
+                        <span class="difficulty-desc">Strategic thinking</span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="backToRoleSelection()">← Back</button>
+            </div>
+        </div>
+
         <!-- Game Screen -->
         <div id="game-screen" class="screen hidden">
             <div class="game-header">

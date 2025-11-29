@@ -1,6 +1,7 @@
 // Octopus Chess Game using Chess.js with click-to-select interface
 let game = null; // Chess.js game instance
 let playerRole = null; // 'head' or 'arm'
+let difficultyLevel = 0; // AI difficulty 0-5
 let selectedPieceType = null; // for the piece type selection
 let selectedSquare = null; // for click-to-select
 let validMoves = []; // valid destination squares
@@ -45,15 +46,63 @@ const PIECE_SYMBOLS = {
     'king': '♚'
 };
 
+// Piece values for AI evaluation
+const PIECE_VALUES = {
+    'p': 1,
+    'n': 3,
+    'b': 3,
+    'r': 5,
+    'q': 9,
+    'k': 0
+};
+
+// Positional bonuses for pieces (simplified)
+const POSITION_BONUS = {
+    'p': [
+        0, 0, 0, 0, 0, 0, 0, 0,
+        5, 5, 5, 5, 5, 5, 5, 5,
+        1, 1, 2, 3, 3, 2, 1, 1,
+        0.5, 0.5, 1, 2.5, 2.5, 1, 0.5, 0.5,
+        0, 0, 0, 2, 2, 0, 0, 0,
+        0.5, -0.5, -1, 0, 0, -1, -0.5, 0.5,
+        0.5, 1, 1, -2, -2, 1, 1, 0.5,
+        0, 0, 0, 0, 0, 0, 0, 0
+    ],
+    'n': [
+        -5, -4, -3, -3, -3, -3, -4, -5,
+        -4, -2, 0, 0, 0, 0, -2, -4,
+        -3, 0, 1, 1.5, 1.5, 1, 0, -3,
+        -3, 0.5, 1.5, 2, 2, 1.5, 0.5, -3,
+        -3, 0, 1.5, 2, 2, 1.5, 0, -3,
+        -3, 0.5, 1, 1.5, 1.5, 1, 0.5, -3,
+        -4, -2, 0, 0.5, 0.5, 0, -2, -4,
+        -5, -4, -3, -3, -3, -3, -4, -5
+    ]
+};
+
 // Role selection
 function selectRole(role) {
     playerRole = role;
     document.getElementById('role-selection').classList.add('hidden');
+    document.getElementById('difficulty-selection').classList.remove('hidden');
+}
+
+// Back to role selection
+function backToRoleSelection() {
+    document.getElementById('difficulty-selection').classList.add('hidden');
+    document.getElementById('role-selection').classList.remove('hidden');
+    playerRole = null;
+}
+
+// Difficulty selection
+function selectDifficulty(level) {
+    difficultyLevel = level;
+    document.getElementById('difficulty-selection').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
 
     const badge = document.getElementById('role-badge');
-    badge.textContent = role === 'head' ? '🧠 Head' : '💪 Arm';
-    badge.className = `badge ${role}`;
+    badge.textContent = playerRole === 'head' ? '🧠 Head' : '💪 Arm';
+    badge.className = `badge ${playerRole}`;
 
     initGame();
 }
@@ -234,7 +283,7 @@ function showArmControls() {
     document.getElementById('arm-controls').classList.remove('hidden');
     document.getElementById('computer-thinking').classList.add('hidden');
 
-    // Computer (HEAD) chooses a piece type
+    // Computer (HEAD) chooses a piece type using AI
     const availablePieces = getAvailablePieceTypes('w');
     const types = Array.from(availablePieces);
 
@@ -243,7 +292,7 @@ function showArmControls() {
         return;
     }
 
-    const chosenType = types[Math.floor(Math.random() * types.length)];
+    const chosenType = choosePieceTypeWithAI(types, 'w');
     selectedPieceType = chosenType;
 
     document.getElementById('selected-type-info').textContent =
@@ -252,6 +301,41 @@ function showArmControls() {
         `Click a ${chosenType} to select, then click where to move:`;
 
     updateGameStatus(`Select a ${chosenType} to move`);
+}
+
+// AI chooses best piece type
+function choosePieceTypeWithAI(types, color) {
+    if (difficultyLevel === 0) {
+        return types[Math.floor(Math.random() * types.length)];
+    }
+
+    // For higher levels, evaluate which piece type has best moves
+    let bestType = types[0];
+    let bestScore = -Infinity;
+
+    for (const type of types) {
+        const allMoves = game.moves({ verbose: true });
+        const typeMoves = allMoves.filter(move => {
+            const piece = game.get(move.from);
+            return piece && PIECE_TYPES[piece.type] === type;
+        });
+
+        if (typeMoves.length === 0) continue;
+
+        // Evaluate moves for this type
+        let typeScore = 0;
+        for (const move of typeMoves) {
+            const score = evaluateMove(move, color);
+            typeScore = Math.max(typeScore, score);
+        }
+
+        if (typeScore > bestScore) {
+            bestScore = typeScore;
+            bestType = type;
+        }
+    }
+
+    return bestType;
 }
 
 // Select piece type as HEAD - computer makes the move
@@ -289,8 +373,8 @@ function makePlayerTeamMove(pieceType) {
         return;
     }
 
-    // Pick a random move of that type
-    const selectedMove = typeMoves[Math.floor(Math.random() * typeMoves.length)];
+    // Pick best move using AI
+    const selectedMove = chooseBestMove(typeMoves, 'w');
 
     // Make the move
     game.move(selectedMove);
@@ -316,6 +400,150 @@ function makePlayerTeamMove(pieceType) {
     setTimeout(computerMove, 500);
 }
 
+// Choose best move from available moves using AI
+function chooseBestMove(moves, color) {
+    if (difficultyLevel === 0) {
+        return moves[Math.floor(Math.random() * moves.length)];
+    }
+
+    let bestMove = moves[0];
+    let bestScore = -Infinity;
+
+    for (const move of moves) {
+        const score = evaluateMove(move, color);
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = move;
+        }
+    }
+
+    return bestMove;
+}
+
+// Evaluate a move based on difficulty level
+function evaluateMove(move, color) {
+    let score = 0;
+
+    // Level 1+: Prefer captures
+    if (difficultyLevel >= 1 && move.captured) {
+        score += PIECE_VALUES[move.captured] * 10;
+    }
+
+    // Level 2+: Avoid hanging pieces
+    if (difficultyLevel >= 2) {
+        // Simple check: is the destination square attacked?
+        game.move(move);
+        const isAttacked = isSquareAttacked(move.to, color === 'w' ? 'b' : 'w');
+        game.undo();
+
+        if (isAttacked) {
+            score -= PIECE_VALUES[move.piece] * 5;
+        }
+    }
+
+    // Level 3+: Material evaluation
+    if (difficultyLevel >= 3) {
+        game.move(move);
+        const materialScore = evaluateMaterial(color);
+        game.undo();
+        score += materialScore;
+    }
+
+    // Level 4+: Positional evaluation
+    if (difficultyLevel >= 4) {
+        const posScore = evaluatePosition(move, color);
+        score += posScore;
+    }
+
+    // Level 5: Look ahead one move
+    if (difficultyLevel >= 5) {
+        game.move(move);
+        const opponentColor = color === 'w' ? 'b' : 'w';
+        const opponentMoves = game.moves({ verbose: true });
+
+        let worstResponse = Infinity;
+        for (let i = 0; i < Math.min(5, opponentMoves.length); i++) {
+            const oppMove = opponentMoves[i];
+            const oppScore = evaluateMove(oppMove, opponentColor);
+            worstResponse = Math.min(worstResponse, -oppScore);
+        }
+
+        score += worstResponse * 0.5;
+        game.undo();
+    }
+
+    // Add small random factor
+    score += Math.random() * 0.5;
+
+    return score;
+}
+
+// Check if a square is attacked by a color
+function isSquareAttacked(square, attackerColor) {
+    const moves = game.moves({ verbose: true });
+    for (const move of moves) {
+        const piece = game.get(move.from);
+        if (piece && piece.color === attackerColor && move.to === square) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Evaluate material advantage
+function evaluateMaterial(color) {
+    const board = game.board();
+    let score = 0;
+
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = board[row][col];
+            if (piece) {
+                const value = PIECE_VALUES[piece.type];
+                if (piece.color === color) {
+                    score += value;
+                } else {
+                    score -= value;
+                }
+            }
+        }
+    }
+
+    return score;
+}
+
+// Evaluate position
+function evaluatePosition(move, color) {
+    let score = 0;
+
+    // Use position tables if available
+    if (POSITION_BONUS[move.piece]) {
+        const board = game.board();
+        let toIndex = 0;
+
+        // Find the index in the position table
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const sq = String.fromCharCode(97 + col) + (8 - row);
+                if (sq === move.to) {
+                    toIndex = row * 8 + col;
+                    break;
+                }
+            }
+        }
+
+        score += POSITION_BONUS[move.piece][toIndex];
+    }
+
+    // Bonus for central control
+    const centerSquares = ['d4', 'd5', 'e4', 'e5'];
+    if (centerSquares.includes(move.to)) {
+        score += 0.5;
+    }
+
+    return score;
+}
+
 // Get available piece types that have valid moves
 function getAvailablePieceTypes(color) {
     const types = new Set();
@@ -338,7 +566,7 @@ function computerMove() {
     showComputerThinking();
 
     setTimeout(() => {
-        // Computer just picks a random valid move
+        // Computer just picks best move using AI
         const possibleMoves = game.moves({ verbose: true });
 
         if (possibleMoves.length === 0) {
@@ -346,7 +574,7 @@ function computerMove() {
             return;
         }
 
-        const selectedMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        const selectedMove = chooseBestMove(possibleMoves, 'b');
 
         // Make the move
         game.move(selectedMove);
@@ -426,4 +654,5 @@ function resetGame() {
     selectedPieceType = null;
     selectedSquare = null;
     validMoves = [];
+    difficultyLevel = 0;
 }

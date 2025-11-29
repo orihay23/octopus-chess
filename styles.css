@@ -153,6 +153,62 @@ h1 {
     white-space: nowrap;
 }
 
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.btn-secondary:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.98);
+}
+
+/* Difficulty Selection Screen */
+.difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.difficulty-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.difficulty-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.difficulty-card h3 {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.difficulty-card p {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.difficulty-desc {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+}
+
 /* Game Screen - Always vertical layout */
 #game-screen {
     padding: 10px;
