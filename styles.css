@@ -1,4 +1,4 @@
-/* Mobile-first design */
+/* Mobile-first design for Octopus Chess */
 * {
     margin: 0;
     padding: 0;
@@ -10,10 +10,6 @@
     --primary-color: #4a90e2;
     --secondary-color: #50c878;
     --danger-color: #e74c3c;
-    --light-square: #f0d9b5;
-    --dark-square: #b58863;
-    --highlight-color: #7fc97f;
-    --selected-color: #ffd700;
     --text-dark: #333;
     --text-light: #fff;
     --bg-color: #f5f5f5;
@@ -26,9 +22,10 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background-attachment: fixed;
     min-height: 100vh;
-    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    min-height: 100dvh;
     color: var(--text-dark);
-    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
     touch-action: manipulation;
 }
 
@@ -40,11 +37,13 @@ body {
 }
 
 .screen {
-    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    flex-direction: column;
+    padding: 10px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -57,10 +56,11 @@ body {
 .container {
     max-width: 600px;
     width: 100%;
+    margin: auto;
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: var(--text-light);
     text-align: center;
     margin-bottom: 1rem;
@@ -70,24 +70,24 @@ h1 {
 .description {
     color: var(--text-light);
     text-align: center;
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
 }
 
 .role-cards {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .role-card {
     background: white;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     box-shadow: var(--shadow-lg);
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s;
     text-align: center;
 }
 
@@ -96,25 +96,26 @@ h1 {
 }
 
 .role-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
 }
 
 .role-card h2 {
     color: var(--primary-color);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
 }
 
 .role-card p {
     color: #666;
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 /* Buttons */
 .btn {
-    padding: 12px 24px;
+    padding: 12px 20px;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -137,19 +138,18 @@ h1 {
 }
 
 .btn-small {
-    padding: 8px 16px;
-    font-size: 0.875rem;
+    padding: 8px 12px;
+    font-size: 0.85rem;
     min-height: 36px;
     background: white;
     color: var(--primary-color);
+    white-space: nowrap;
 }
 
-/* Game Screen */
+/* Game Screen - Always vertical layout */
 #game-screen {
-    padding: 8px;
-    align-items: flex-start;
-    justify-content: flex-start;
-    width: 100%;
+    padding: 10px;
+    gap: 10px;
 }
 
 .game-header {
@@ -162,21 +162,21 @@ h1 {
 .status-bar {
     background: white;
     border-radius: 12px;
-    padding: 12px 16px;
+    padding: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
     box-shadow: var(--shadow);
-    margin-bottom: 12px;
 }
 
 .badge {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 20px;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .badge.head {
@@ -193,85 +193,34 @@ h1 {
     flex: 1;
     font-weight: 600;
     color: var(--text-dark);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* Game container - vertical stacking */
 .game-container {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
+    gap: 10px;
     flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
-/* Chess Board */
-.chess-board {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 0;
-    aspect-ratio: 1;
+/* Chess Board - using chessboard.js styles */
+#chess-board {
     width: 100%;
-    max-width: min(500px, calc(100vw - 16px), 60vh);
-    margin: 0 auto 12px;
-    box-shadow: var(--shadow-lg);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--dark-square);
+    max-width: min(100%, 90vw);
+    margin: 0 auto;
     flex-shrink: 0;
 }
 
-.square {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(2rem, 8vw, 3rem);
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    transition: background-color 0.2s;
-    touch-action: manipulation;
-}
-
-.square.light {
-    background-color: var(--light-square);
-}
-
-.square.dark {
-    background-color: var(--dark-square);
-}
-
-.square.selected {
-    background-color: var(--selected-color) !important;
-    box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.5);
-}
-
-.square.valid-move {
-    background-color: var(--highlight-color) !important;
-}
-
-.square.valid-move::after {
-    content: '';
-    position: absolute;
-    width: 20%;
-    height: 20%;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
-}
-
-.square.valid-move.has-piece::after {
-    width: 90%;
-    height: 90%;
-    background: transparent;
-    border: 3px solid rgba(255, 0, 0, 0.5);
-    border-radius: 50%;
-}
-
-.square:active {
-    opacity: 0.8;
+/* Override chessboard.js for mobile */
+.board-b72b1 {
+    border: none !important;
 }
 
 /* Move Controls */
@@ -280,40 +229,39 @@ h1 {
     border-radius: 12px;
     padding: 12px;
     box-shadow: var(--shadow);
-    margin-bottom: 12px;
     flex-shrink: 0;
 }
 
 .control-panel h3 {
     color: var(--text-dark);
-    font-size: 1.1rem;
-    margin-bottom: 12px;
+    font-size: 1rem;
+    margin-bottom: 10px;
 }
 
 .piece-type-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
 }
 
 .piece-type-btn {
-    padding: 16px 12px;
+    padding: 12px 8px;
     border: 2px solid #ddd;
     border-radius: 8px;
     background: white;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
     touch-action: manipulation;
-    min-height: 70px;
+    min-height: 60px;
 }
 
 .piece-type-btn span {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #666;
     text-transform: capitalize;
 }
@@ -326,18 +274,23 @@ h1 {
 }
 
 .piece-type-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.3;
     cursor: not-allowed;
+}
+
+.piece-type-btn:disabled:active {
+    transform: none;
 }
 
 .info-text {
     background: #f0f7ff;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     color: var(--primary-color);
     font-weight: 600;
     text-align: center;
     margin-top: 8px;
+    font-size: 0.9rem;
 }
 
 /* Thinking indicator */
@@ -345,15 +298,15 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding: 20px;
+    gap: 12px;
+    padding: 16px;
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--primary-color);
+    width: 36px;
+    height: 36px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -361,6 +314,12 @@ h1 {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.thinking-indicator p {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: 600;
 }
 
 /* Modal */
@@ -390,44 +349,17 @@ h1 {
 
 .modal-content h2 {
     color: var(--primary-color);
-    font-size: 2rem;
+    font-size: 1.8rem;
     margin-bottom: 1rem;
 }
 
 .modal-content p {
     color: #666;
     margin-bottom: 1.5rem;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
-/* Mobile adjustments */
-@media (max-height: 700px) {
-    .status-bar {
-        padding: 8px 12px;
-        margin-bottom: 8px;
-    }
-
-    .chess-board {
-        max-width: min(450px, calc(100vw - 16px), 50vh);
-        margin-bottom: 8px;
-    }
-
-    .move-controls {
-        padding: 10px;
-    }
-
-    .control-panel h3 {
-        font-size: 1rem;
-        margin-bottom: 8px;
-    }
-
-    .piece-type-btn {
-        padding: 12px 8px;
-        min-height: 60px;
-    }
-}
-
-/* Tablet and larger */
+/* Tablet and larger screens */
 @media (min-width: 768px) {
     .role-cards {
         flex-direction: row;
@@ -437,29 +369,76 @@ h1 {
         font-size: 3rem;
     }
 
-    .chess-board {
-        max-width: 600px;
+    #chess-board {
+        max-width: 500px;
     }
 
-    .square {
-        font-size: 3.5rem;
+    .status-bar {
+        padding: 12px 16px;
+    }
+
+    .piece-type-buttons {
+        grid-template-columns: repeat(6, 1fr);
     }
 }
 
-/* Landscape mobile optimization */
-@media (max-height: 600px) and (orientation: landscape) {
-    .chess-board {
-        max-width: 50vh;
+/* Ensure everything is visible on small mobile screens */
+@media (max-height: 700px) {
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
-    .game-container {
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
+    .description {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .role-card {
+        padding: 1rem;
+    }
+
+    .role-icon {
+        font-size: 2.5rem;
+    }
+
+    .role-card h2 {
+        font-size: 1.1rem;
+    }
+
+    .role-card p {
+        font-size: 0.85rem;
+    }
+
+    .status-bar {
+        padding: 8px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+
+    .status-text {
+        font-size: 0.85rem;
+    }
+
+    .control-panel h3 {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
     }
 
     .move-controls {
-        flex: 1;
-        max-width: 300px;
+        padding: 10px;
+    }
+
+    .piece-type-btn {
+        padding: 8px 4px;
+        min-height: 50px;
+        font-size: 1.5rem;
+    }
+
+    .piece-type-btn span {
+        font-size: 0.65rem;
     }
 }
