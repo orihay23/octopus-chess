@@ -1,9 +1,30 @@
-// Octopus Chess Game using Chess.js and Chessboard.js
+// Octopus Chess Game using Chess.js with click-to-select interface
 let game = null; // Chess.js game instance
-let board = null; // Chessboard.js board instance
 let playerRole = null; // 'head' or 'arm'
 let selectedPieceType = null; // for the piece type selection
+let selectedSquare = null; // for click-to-select
+let validMoves = []; // valid destination squares
 let isPlayerTurn = true;
+
+// Chess pieces unicode symbols
+const PIECES = {
+    w: {
+        p: '♙',
+        n: '♘',
+        b: '♗',
+        r: '♖',
+        q: '♕',
+        k: '♔'
+    },
+    b: {
+        p: '♟',
+        n: '♞',
+        b: '♝',
+        r: '♜',
+        q: '♛',
+        k: '♚'
+    }
+};
 
 // Piece type mapping
 const PIECE_TYPES = {
@@ -42,65 +63,112 @@ function initGame() {
     // Create new chess game
     game = new Chess();
 
-    // Configure board with piece theme
-    const config = {
-        draggable: playerRole === 'arm', // Only ARM role can drag pieces
-        position: 'start',
-        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        onDragStart: onDragStart,
-        onDrop: onDrop,
-        onSnapEnd: onSnapEnd
-    };
-
-    // Initialize chessboard
-    board = Chessboard('chess-board', config);
-
     // Reset game state
     selectedPieceType = null;
+    selectedSquare = null;
+    validMoves = [];
     isPlayerTurn = true;
 
+    renderBoard();
     updateGameStatus();
     startPlayerTurn();
 }
 
-// Handle drag start (only for ARM role)
-function onDragStart(source, piece, position, orientation) {
-    // Don't allow moves if game is over
-    if (game.game_over()) return false;
+// Render the chess board
+function renderBoard() {
+    const boardElement = document.getElementById('chess-board');
+    boardElement.innerHTML = '';
 
-    // Don't allow moves if it's not player's turn
-    if (!isPlayerTurn) return false;
+    const board = game.board();
 
-    // Only allow white pieces to be moved by player
-    if (piece.search(/^b/) !== -1) return false;
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const square = document.createElement('div');
+            const squareName = String.fromCharCode(97 + col) + (8 - row);
 
-    // For ARM role: computer (head) has already chosen the piece type
-    if (playerRole === 'arm') {
-        if (!selectedPieceType) {
-            return false;
+            square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+            square.dataset.square = squareName;
+
+            const piece = board[row][col];
+            if (piece) {
+                const pieceSpan = document.createElement('span');
+                pieceSpan.className = 'piece';
+                pieceSpan.textContent = PIECES[piece.color][piece.type];
+                square.appendChild(pieceSpan);
+            }
+
+            // Highlight selected square
+            if (selectedSquare === squareName) {
+                square.classList.add('selected');
+            }
+
+            // Highlight valid moves
+            if (validMoves.includes(squareName)) {
+                square.classList.add('valid-move');
+                if (piece) {
+                    square.classList.add('capture');
+                }
+            }
+
+            square.addEventListener('click', () => handleSquareClick(squareName));
+            boardElement.appendChild(square);
         }
-        const pieceType = PIECE_TYPES[piece.charAt(1).toLowerCase()];
-        // Can only drag pieces of the chosen type
-        return pieceType === selectedPieceType;
     }
-
-    return false; // HEAD role doesn't drag
 }
 
-// Handle piece drop (only for ARM role)
-function onDrop(source, target) {
-    // Try to make the move
+// Handle square click
+function handleSquareClick(square) {
+    if (!isPlayerTurn || game.game_over()) return;
+
+    // For HEAD role, don't allow clicking on board
+    if (playerRole === 'head') return;
+
+    // Check if clicking on a valid destination
+    if (validMoves.includes(square)) {
+        makeMove(selectedSquare, square);
+        return;
+    }
+
+    // For ARM role: can only select pieces of the chosen type
+    if (playerRole === 'arm' && selectedPieceType) {
+        const piece = game.get(square);
+        if (piece && piece.color === 'w' && PIECE_TYPES[piece.type] === selectedPieceType) {
+            selectPiece(square);
+        } else if (selectedSquare) {
+            // Deselect if clicking elsewhere
+            selectedSquare = null;
+            validMoves = [];
+            renderBoard();
+        }
+    }
+}
+
+// Select a piece
+function selectPiece(square) {
+    selectedSquare = square;
+
+    // Get valid moves for this piece
+    const moves = game.moves({ square: square, verbose: true });
+    validMoves = moves.map(move => move.to);
+
+    renderBoard();
+}
+
+// Make a move
+function makeMove(from, to) {
     const move = game.move({
-        from: source,
-        to: target,
-        promotion: 'q' // Always promote to queen for simplicity
+        from: from,
+        to: to,
+        promotion: 'q' // Always promote to queen
     });
 
-    // Invalid move
-    if (move === null) return 'snapback';
+    if (!move) return;
 
-    // Valid move made
+    selectedSquare = null;
+    validMoves = [];
     selectedPieceType = null;
+
+    renderBoard();
     updateGameStatus();
 
     // Check for game over
@@ -120,14 +188,12 @@ function onDrop(source, target) {
     setTimeout(computerMove, 500);
 }
 
-// Update board position after snap animation
-function onSnapEnd() {
-    board.position(game.fen());
-}
-
 // Start player turn
 function startPlayerTurn() {
     isPlayerTurn = true;
+    selectedSquare = null;
+    validMoves = [];
+    renderBoard();
 
     if (playerRole === 'head') {
         showHeadControls();
@@ -183,9 +249,9 @@ function showArmControls() {
     document.getElementById('selected-type-info').textContent =
         `Computer chose: ${PIECE_SYMBOLS[chosenType]} ${chosenType.toUpperCase()}`;
     document.getElementById('arm-instruction').textContent =
-        `Drag a ${chosenType} to move:`;
+        `Click a ${chosenType} to select, then click where to move:`;
 
-    updateGameStatus(`Drag a ${chosenType} to move`);
+    updateGameStatus(`Select a ${chosenType} to move`);
 }
 
 // Select piece type as HEAD - computer makes the move
@@ -228,9 +294,10 @@ function makePlayerTeamMove(pieceType) {
 
     // Make the move
     game.move(selectedMove);
-    board.position(game.fen());
-
     selectedPieceType = null;
+
+    renderBoard();
+    updateGameStatus();
 
     // Check for game over
     if (game.game_over()) {
@@ -283,8 +350,8 @@ function computerMove() {
 
         // Make the move
         game.move(selectedMove);
-        board.position(game.fen());
 
+        renderBoard();
         hideComputerThinking();
 
         // Check for game over
@@ -357,7 +424,6 @@ function resetGame() {
     document.getElementById('role-selection').classList.remove('hidden');
     playerRole = null;
     selectedPieceType = null;
-    if (board) {
-        board.destroy();
-    }
+    selectedSquare = null;
+    validMoves = [];
 }
