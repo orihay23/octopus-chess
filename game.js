@@ -42,10 +42,11 @@ function initGame() {
     // Create new chess game
     game = new Chess();
 
-    // Configure board
+    // Configure board with piece theme
     const config = {
-        draggable: true,
+        draggable: playerRole === 'arm', // Only ARM role can drag pieces
         position: 'start',
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
         onDragStart: onDragStart,
         onDrop: onDrop,
         onSnapEnd: onSnapEnd
@@ -62,7 +63,7 @@ function initGame() {
     startPlayerTurn();
 }
 
-// Handle drag start
+// Handle drag start (only for ARM role)
 function onDragStart(source, piece, position, orientation) {
     // Don't allow moves if game is over
     if (game.game_over()) return false;
@@ -73,30 +74,20 @@ function onDragStart(source, piece, position, orientation) {
     // Only allow white pieces to be moved by player
     if (piece.search(/^b/) !== -1) return false;
 
-    const pieceType = PIECE_TYPES[piece.charAt(1).toLowerCase()];
-
-    // For HEAD role: can only move if piece type is selected
-    if (playerRole === 'head') {
-        if (!selectedPieceType) {
-            return false;
-        }
-        // Can only drag pieces of the selected type
-        return pieceType === selectedPieceType;
-    }
-
     // For ARM role: computer (head) has already chosen the piece type
     if (playerRole === 'arm') {
         if (!selectedPieceType) {
             return false;
         }
+        const pieceType = PIECE_TYPES[piece.charAt(1).toLowerCase()];
         // Can only drag pieces of the chosen type
         return pieceType === selectedPieceType;
     }
 
-    return true;
+    return false; // HEAD role doesn't drag
 }
 
-// Handle piece drop
+// Handle piece drop (only for ARM role)
 function onDrop(source, target) {
     // Try to make the move
     const move = game.move({
@@ -164,7 +155,7 @@ function showHeadControls() {
         button.className = 'piece-type-btn';
         button.innerHTML = `${PIECE_SYMBOLS[type]}<span>${type}</span>`;
         button.disabled = !availablePieces.has(type);
-        button.onclick = () => selectPieceType(type);
+        button.onclick = () => selectPieceTypeAsHead(type);
         buttonsContainer.appendChild(button);
     }
 
@@ -194,11 +185,11 @@ function showArmControls() {
     document.getElementById('arm-instruction').textContent =
         `Drag a ${chosenType} to move:`;
 
-    updateGameStatus(`Move a ${chosenType}`);
+    updateGameStatus(`Drag a ${chosenType} to move`);
 }
 
-// Select piece type (HEAD role)
-function selectPieceType(type) {
+// Select piece type as HEAD - computer makes the move
+function selectPieceTypeAsHead(type) {
     selectedPieceType = type;
 
     // Highlight the selected button
@@ -206,7 +197,56 @@ function selectPieceType(type) {
     buttons.forEach(btn => btn.classList.remove('selected'));
     event.target.closest('.piece-type-btn').classList.add('selected');
 
-    updateGameStatus(`Drag a ${type} to move`);
+    updateGameStatus(`Computer is moving a ${type}...`);
+
+    // Computer makes a move with the selected piece type
+    setTimeout(() => {
+        makePlayerTeamMove(type);
+    }, 800);
+}
+
+// Make a move for the player's team (when player is HEAD)
+function makePlayerTeamMove(pieceType) {
+    if (game.game_over()) return;
+
+    // Get all moves for the selected piece type
+    const allMoves = game.moves({ verbose: true });
+    const typeMoves = allMoves.filter(move => {
+        const piece = game.get(move.from);
+        return piece && PIECE_TYPES[piece.type] === pieceType;
+    });
+
+    if (typeMoves.length === 0) {
+        updateGameStatus('No valid moves for that piece type!');
+        selectedPieceType = null;
+        showHeadControls();
+        return;
+    }
+
+    // Pick a random move of that type
+    const selectedMove = typeMoves[Math.floor(Math.random() * typeMoves.length)];
+
+    // Make the move
+    game.move(selectedMove);
+    board.position(game.fen());
+
+    selectedPieceType = null;
+
+    // Check for game over
+    if (game.game_over()) {
+        setTimeout(() => {
+            if (game.in_checkmate()) {
+                endGame('white');
+            } else {
+                endGame('draw');
+            }
+        }, 200);
+        return;
+    }
+
+    // Computer's turn
+    isPlayerTurn = false;
+    setTimeout(computerMove, 500);
 }
 
 // Get available piece types that have valid moves
@@ -224,43 +264,22 @@ function getAvailablePieceTypes(color) {
     return types;
 }
 
-// Computer move
+// Computer move (opponent)
 function computerMove() {
     if (game.game_over()) return;
 
     showComputerThinking();
 
     setTimeout(() => {
-        let selectedMove;
+        // Computer just picks a random valid move
+        const possibleMoves = game.moves({ verbose: true });
 
-        if (playerRole === 'head') {
-            // Computer is ARM: player chose piece type, computer chooses which piece
-            // For simplicity, just pick a random valid move
-            const possibleMoves = game.moves({ verbose: true });
-            selectedMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        } else {
-            // Computer is HEAD: computer chooses piece type, then makes a move
-            // Get available piece types
-            const availablePieces = getAvailablePieceTypes('b');
-            if (availablePieces.size === 0) {
-                endGame('white');
-                return;
-            }
-
-            // Choose a random piece type
-            const types = Array.from(availablePieces);
-            const chosenType = types[Math.floor(Math.random() * types.length)];
-
-            // Get all moves for that piece type
-            const allMoves = game.moves({ verbose: true });
-            const typeMoves = allMoves.filter(move => {
-                const piece = game.get(move.from);
-                return piece && PIECE_TYPES[piece.type] === chosenType;
-            });
-
-            // Pick a random move of that type
-            selectedMove = typeMoves[Math.floor(Math.random() * typeMoves.length)];
+        if (possibleMoves.length === 0) {
+            endGame('white');
+            return;
         }
+
+        const selectedMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
 
         // Make the move
         game.move(selectedMove);
