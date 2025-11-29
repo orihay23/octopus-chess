@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Octopus Chess</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Role Selection Screen -->
+        <div id="role-selection" class="screen">
+            <div class="container">
+                <h1>🐙 Octopus Chess</h1>
+                <p class="description">
+                    Play chess with a twist! Choose your role in the octopus:
+                </p>
+                <div class="role-cards">
+                    <div class="role-card" onclick="selectRole('head')">
+                        <div class="role-icon">🧠</div>
+                        <h2>The Head</h2>
+                        <p>You decide WHICH type of piece to move (e.g., knight, bishop, pawn)</p>
+                        <button class="btn btn-primary">Play as Head</button>
+                    </div>
+                    <div class="role-card" onclick="selectRole('arm')">
+                        <div class="role-icon">💪</div>
+                        <h2>The Arm</h2>
+                        <p>You choose WHICH specific piece of the given type to move</p>
+                        <button class="btn btn-primary">Play as Arm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <div class="status-bar">
+                    <div class="player-role">
+                        <span id="role-badge" class="badge"></span>
+                    </div>
+                    <div id="game-status" class="status-text">Your turn</div>
+                    <button class="btn btn-small" onclick="resetGame()">New Game</button>
+                </div>
+            </div>
+
+            <div class="game-container">
+                <!-- Chess Board -->
+                <div id="chess-board" class="chess-board"></div>
+
+                <!-- Move Controls -->
+                <div id="move-controls" class="move-controls">
+                    <div id="head-controls" class="control-panel hidden">
+                        <h3>Choose piece type to move:</h3>
+                        <div class="piece-type-buttons" id="piece-type-buttons"></div>
+                    </div>
+
+                    <div id="arm-controls" class="control-panel hidden">
+                        <h3 id="arm-instruction">Select a piece to move:</h3>
+                        <div class="info-text" id="selected-type-info"></div>
+                    </div>
+
+                    <div id="computer-thinking" class="control-panel hidden">
+                        <div class="thinking-indicator">
+                            <div class="spinner"></div>
+                            <p>Computer is thinking...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="game-over-title">Game Over</h2>
+                <p id="game-over-message"></p>
+                <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

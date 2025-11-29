@@ -1,0 +1,422 @@
+/* Mobile-first design */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #50c878;
+    --danger-color: #e74c3c;
+    --light-square: #f0d9b5;
+    --dark-square: #b58863;
+    --highlight-color: #7fc97f;
+    --selected-color: #ffd700;
+    --text-dark: #333;
+    --text-light: #fff;
+    --bg-color: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: var(--text-dark);
+    overflow-x: hidden;
+    touch-action: manipulation;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Role Selection Screen */
+.container {
+    max-width: 600px;
+    width: 100%;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.description {
+    color: var(--text-light);
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.role-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.role-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+}
+
+.role-card:active {
+    transform: scale(0.98);
+}
+
+.role-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.role-card h2 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.role-card p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+    min-height: 44px;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    width: 100%;
+}
+
+.btn-primary:active {
+    background: #3a7bc8;
+    transform: scale(0.98);
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    min-height: 36px;
+    background: white;
+    color: var(--primary-color);
+}
+
+/* Game Screen */
+#game-screen {
+    padding: 10px;
+    align-items: flex-start;
+}
+
+.game-header {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.status-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge.head {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge.arm {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.status-text {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Chess Board */
+.chess-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 20px;
+    box-shadow: var(--shadow-lg);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--dark-square);
+}
+
+.square {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(2rem, 8vw, 3rem);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s;
+    touch-action: manipulation;
+}
+
+.square.light {
+    background-color: var(--light-square);
+}
+
+.square.dark {
+    background-color: var(--dark-square);
+}
+
+.square.selected {
+    background-color: var(--selected-color) !important;
+    box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.5);
+}
+
+.square.valid-move {
+    background-color: var(--highlight-color) !important;
+}
+
+.square.valid-move::after {
+    content: '';
+    position: absolute;
+    width: 20%;
+    height: 20%;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+}
+
+.square.valid-move.has-piece::after {
+    width: 90%;
+    height: 90%;
+    background: transparent;
+    border: 3px solid rgba(255, 0, 0, 0.5);
+    border-radius: 50%;
+}
+
+.square:active {
+    opacity: 0.8;
+}
+
+/* Move Controls */
+.move-controls {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.control-panel h3 {
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+}
+
+.piece-type-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+}
+
+.piece-type-btn {
+    padding: 16px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    touch-action: manipulation;
+    min-height: 70px;
+}
+
+.piece-type-btn span {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: capitalize;
+}
+
+.piece-type-btn:active,
+.piece-type-btn.selected {
+    border-color: var(--primary-color);
+    background: #e3f2fd;
+    transform: scale(0.95);
+}
+
+.piece-type-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.info-text {
+    background: #f0f7ff;
+    padding: 12px;
+    border-radius: 8px;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-align: center;
+    margin-top: 8px;
+}
+
+/* Thinking indicator */
+.thinking-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-content h2 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.modal-content p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* Tablet and larger */
+@media (min-width: 768px) {
+    .role-cards {
+        flex-direction: row;
+    }
+
+    h1 {
+        font-size: 3rem;
+    }
+
+    .chess-board {
+        max-width: 600px;
+    }
+
+    .square {
+        font-size: 3.5rem;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-height: 600px) and (orientation: landscape) {
+    .chess-board {
+        max-width: 50vh;
+    }
+
+    .game-container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .move-controls {
+        flex: 1;
+        max-width: 300px;
+    }
+}
