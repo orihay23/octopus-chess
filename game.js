@@ -325,7 +325,7 @@ function choosePieceTypeWithAI(types, color) {
         // Evaluate moves for this type
         let typeScore = 0;
         for (const move of typeMoves) {
-            const score = evaluateMove(move, color);
+            const score = evaluateMove(move, color, 0);
             typeScore = Math.max(typeScore, score);
         }
 
@@ -410,7 +410,7 @@ function chooseBestMove(moves, color) {
     let bestScore = -Infinity;
 
     for (const move of moves) {
-        const score = evaluateMove(move, color);
+        const score = evaluateMove(move, color, 0); // Start at depth 0
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;
@@ -420,8 +420,8 @@ function chooseBestMove(moves, color) {
     return bestMove;
 }
 
-// Evaluate a move based on difficulty level
-function evaluateMove(move, color) {
+// Evaluate a move based on difficulty level (with depth to prevent infinite recursion)
+function evaluateMove(move, color, depth = 0) {
     let score = 0;
 
     // Level 1+: Prefer captures
@@ -455,16 +455,18 @@ function evaluateMove(move, color) {
         score += posScore;
     }
 
-    // Level 5: Look ahead one move
-    if (difficultyLevel >= 5) {
+    // Level 5: Look ahead one move (only at depth 0 to prevent infinite recursion)
+    if (difficultyLevel >= 5 && depth === 0) {
         game.move(move);
         const opponentColor = color === 'w' ? 'b' : 'w';
         const opponentMoves = game.moves({ verbose: true });
 
         let worstResponse = Infinity;
-        for (let i = 0; i < Math.min(5, opponentMoves.length); i++) {
+        // Evaluate top opponent responses
+        for (let i = 0; i < Math.min(10, opponentMoves.length); i++) {
             const oppMove = opponentMoves[i];
-            const oppScore = evaluateMove(oppMove, opponentColor);
+            // Evaluate opponent's move at depth 1 (won't trigger look-ahead)
+            const oppScore = evaluateMove(oppMove, opponentColor, 1);
             worstResponse = Math.min(worstResponse, -oppScore);
         }
 
