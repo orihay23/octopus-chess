@@ -441,18 +441,21 @@ function evaluateMove(move, color, depth = 0) {
         }
     }
 
-    // Level 3+: Material evaluation
+    // Level 3+: Material evaluation (check trades and material balance)
     if (difficultyLevel >= 3) {
+        // Calculate material balance change from this move
+        const materialBefore = evaluateMaterial(color);
         game.move(move);
-        const materialScore = evaluateMaterial(color);
+        const materialAfter = evaluateMaterial(color);
         game.undo();
-        score += materialScore;
+        const materialGain = materialAfter - materialBefore;
+        score += materialGain * 5; // Weight material changes significantly
     }
 
     // Level 4+: Positional evaluation
     if (difficultyLevel >= 4) {
         const posScore = evaluatePosition(move, color);
-        score += posScore;
+        score += posScore * 2; // Weight positional play more
     }
 
     // Level 5: Look ahead one move (only at depth 0 to prevent infinite recursion)
@@ -470,12 +473,12 @@ function evaluateMove(move, color, depth = 0) {
             worstResponse = Math.min(worstResponse, -oppScore);
         }
 
-        score += worstResponse * 0.5;
+        score += worstResponse * 1.0; // Weight look-ahead significantly
         game.undo();
     }
 
-    // Add small random factor
-    score += Math.random() * 0.5;
+    // Add small random factor for variety
+    score += Math.random() * 2;
 
     return score;
 }
